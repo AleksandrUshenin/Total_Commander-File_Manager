@@ -34,5 +34,17 @@ namespace TotalCommander.Properties {
                 this["HomeDirrction"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string HomeDirrction2 {
+            get {
+                return ((string)(this["HomeDirrction2"]));
+            }
+            set {
+                this["HomeDirrction2"] = value;
+            }
+        }
     }
 }

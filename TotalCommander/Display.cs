@@ -51,6 +51,17 @@ namespace TotalCommander
 
             Console.ForegroundColor = ConsoleColor.White;
         }
+        public void PrinntDisplay2Line()
+        {
+            Console.ForegroundColor = ConsoleColor.Blue;
+            PrintConsole((WindowsWidth - 2) / 2, 0, '╦');
+            for (int i = 1; i < Line1_1; i++)
+            {
+                PrintConsole((WindowsWidth - 2) / 2, i, '║');
+            }
+            PrintConsole((WindowsWidth - 2) / 2, Line1_1, '╩');
+            Console.ForegroundColor = ConsoleColor.White;
+        }
         void PrintConsole(int x, int y, char znak)
         {
             Console.SetCursorPosition(x, y);

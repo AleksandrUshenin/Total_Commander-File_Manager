@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API.cs" />
+    <Compile Include="ClassDataDirectores.cs" />
     <Compile Include="Display.cs" />
     <Compile Include="DoCommand.cs" />
     <Compile Include="Program.cs" />

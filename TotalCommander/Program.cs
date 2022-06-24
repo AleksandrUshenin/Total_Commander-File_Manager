@@ -41,9 +41,16 @@ namespace TotalCommander
             {
                 Properties.Settings.Default.HomeDirrction = Directory.GetCurrentDirectory();
             }
+            if (Properties.Settings.Default.HomeDirrction2 == "")
+            {
+                Properties.Settings.Default.HomeDirrction2 = Directory.GetCurrentDirectory();
+            }
+            Properties.Settings.Default.Save();
             if (!Directory.Exists(Properties.Settings.Default.HomeDirrction))
             {
                 WindowsManeger wm = new WindowsManeger(Directory.GetCurrentDirectory());
+                Properties.Settings.Default.HomeDirrction2 = Directory.GetCurrentDirectory();
+                Properties.Settings.Default.Save();
                 wm.StartWinMeneger();
             }
             else

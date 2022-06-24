@@ -12,64 +12,58 @@ namespace TotalCommander
     /// </summary>
     internal class WindowsManeger : Program
     {
-        public static string DirHome;
-        public static DirectoryInfo DInfo;
-        public static DirectoryInfo[] dirInfo;
-        public static FileInfo[] fileInfo;
-        public static int Page;
-        public static int PageMax;
-        public static string[] AllDirecroris;
+        public static List<ClassDataDirectores> listDir = new List<ClassDataDirectores>();
+        public static int SelWin;
         public WindowsManeger()
         {
         }
         public WindowsManeger(string _dir)
         {
-            DirHome = _dir;
-            DInfo = new DirectoryInfo(DirHome);
-        }
-        /// <summary>
-        /// получение информации о текущем каталоге
-        /// </summary>
-        public void GetInfo()
-        {
-            dirInfo = DInfo.GetDirectories();
-            fileInfo = DInfo.GetFiles();
-
-            AllDirecroris = new string[dirInfo.Length + fileInfo.Length + 1];
-            AllDirecroris[0] = @"\..";
-
-            for (int i = 0; i < dirInfo.Length; i++)
-            {
-                AllDirecroris[i + 1] = dirInfo[i].Name;
-            }
-            int i2 = 0;
-            for (int i = dirInfo.Length + 1; i2 < fileInfo.Length; i++, i2++)
-            {
-                AllDirecroris[i] = fileInfo[i2].Name;
-            }
+            SelWin = 0;
+            ClassDataDirectores dataDirectory = new ClassDataDirectores();
+            dataDirectory.DirHome = _dir;
+            dataDirectory.SetDInfo();
+            listDir.Add(dataDirectory);
+            listDir.Add(new ClassDataDirectores());
+            listDir[1].DirHome = Properties.Settings.Default.HomeDirrction2;
+            listDir[1].SetDInfo();
+            listDir[1].GetInfo();
         }
         /// <summary>
         /// запуск отрисовки и сбора информации главного окна
         /// </summary>
         public void StartWinMeneger()
         {
-            GetInfo();
-            Page = 0;
-            GetPages(Page);
-            Print(Page);
+            listDir[0].GetInfo();
+            listDir[0].Page = 0;
+            Print(listDir[0].Page, 0);
+            GetPages(listDir[0].Page, 0);
+
+            listDir[1].GetInfo();
+            Print(listDir[1].Page, 1);
+            GetPages(listDir[1].Page, 1);
         }
         /// <summary>
         /// отрисовка в окне 1 (окно с директориями)
         /// </summary>
         /// <param name="page">номер страницы для отрисовки</param>
-        public void Print(int page)
+        public void Print(int page, int NumDisplay)
         {
             int poz = 1;
-            for (int i = (Line1_1 - 2) * page; i < AllDirecroris.Length; i++, poz++)
+            int Wind;
+            if (NumDisplay == 0)
+            {
+                Wind = 2;
+            }
+            else
+            {
+                Wind = WindowsWidth / 2 + 1;
+            }
+            for (int i = (Line1_1 - 2) * page; i < listDir[NumDisplay].AllDirecroris.Length; i++, poz++)
             {
                 if (poz <= Line1_1 - 1)
                 {
-                    if (i <= dirInfo.Length)
+                    if (i <= listDir[NumDisplay].dirInfo.Length)
                     {
                         Console.ForegroundColor = ConsoleColor.White;
                     }
@@ -77,26 +71,35 @@ namespace TotalCommander
                     {
                         Console.ForegroundColor = ConsoleColor.Yellow;
                     }
-                    Console.SetCursorPosition(2, poz);
-                    Console.Write(AllDirecroris[i]);
+                    Console.SetCursorPosition(Wind, poz);
+                    Console.Write(listDir[NumDisplay].AllDirecroris[i]);
                 }
                 else
                 {
                     break;
                 }
             }
-            Console.ForegroundColor = ConsoleColor.White;
+            Display dis = new Display();
+            dis.PrinntDisplay2Line();
+
+            if (SelWin == NumDisplay)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                DelitConsole();
+                Console.SetCursorPosition(2, Line2_2 + 1);
+                Console.Write(listDir[NumDisplay].DirHome + " > ");
+            }
         }
         /// <summary>
         /// метод для получения количества страниц
         /// </summary>
         /// <param name="nowPage">текущая страница</param>
-        public void GetPages(int nowPage)
+        public void GetPages(int nowPage, int NumDisplay)
         {
-            int dlina = dirInfo.Length + fileInfo.Length;
+            int dlina = listDir[NumDisplay].dirInfo.Length + listDir[NumDisplay].fileInfo.Length;
             Console.ForegroundColor = ConsoleColor.Blue;
-            PageMax = dlina / (Line1_1 - 2) + (dlina % Line1_1 - 2 == 0 ? 0 : 1);
-            string p = "╣ Page " + (nowPage + 1) + "/" + PageMax + " ╠";
+            listDir[NumDisplay].PageMax = dlina / (Line1_1 - 2) + (dlina % Line1_1 - 2 == 0 ? 0 : 1);
+            string p = "╣ Page " + (nowPage + 1) + "/" + listDir[NumDisplay].PageMax + " ╠";
             PrintPage(p);
             Console.ForegroundColor = ConsoleColor.White;
         }
@@ -125,11 +128,35 @@ namespace TotalCommander
                 }
             }
         }
+        public void DeliteWindows(int NumDisp)
+        {
+            Console.BackgroundColor = ConsoleColor.Black;
+            int start, end;
+            if (NumDisp == 0)
+            {
+                start = 1;
+                end = (WindowsWidth - 1) / 2;
+            }
+            else
+            {
+                end = WindowsWidth - 1;
+                start = WindowsWidth / 2;
+            }
+            for (int i = start; i < end; i++)
+            {
+                for (int j = 1; j < Line1_1; j++)
+                {
+                    Console.SetCursorPosition(i, j);
+                    Console.Write(" ");
+                }
+            }
+        }
         /// <summary>
         /// метод для очистки окна с информацией 
         /// </summary>
         public void InfoDelit()
         {
+            Console.CursorVisible = false;
             for (int i = 1; i < WindowsWidth - 2; i++)
             {
                 for (int j = Line1_2 + 1; j < Line2_1; j++)
@@ -144,29 +171,45 @@ namespace TotalCommander
         /// </summary>
         /// <param name="select"></param>
         /// <returns></returns>
-        public async Task PrintInfo(int select)
+        public void PrintInfo(int select, int NumDisp)//async Task
         {
+            Console.CursorVisible = false;
             if (select > -1)
             {
                 Console.BackgroundColor = ConsoleColor.Black;
                 InfoDelit();
-                Console.SetCursorPosition(2, Line1_2 + 1);
-
-                if (select < dirInfo.Length)
+                if (select < listDir[NumDisp].dirInfo.Length)
                 {
-                    long Sum = GetSizeDirectory(dirInfo[select]);
-                    Console.Write(dirInfo[select].Attributes + " ---- " + dirInfo[select].Name + " ---- " + Sum / 1024 + " Mb");
-                    Console.SetCursorPosition(2, Line1_2 + 2);
-                    Console.Write(dirInfo[select].CreationTime);
+                    long Sum = GetSizeDirectory(listDir[NumDisp].dirInfo[select]);
+                    string mess = listDir[NumDisp].dirInfo[select].Name + "  " + listDir[NumDisp].dirInfo[select].LastWriteTime
+                        + "  " + Sum / 1024 + " Mb";
+                    Console.SetCursorPosition(2, Line1_2 + 1);
+                    PrintStroks(mess);
                 }
                 else
                 {
-                    select -= dirInfo.Length;
-                    long Sum = GetSizeFile(fileInfo[select]);
-                    Console.Write(fileInfo[select].Attributes + " ---- " + fileInfo[select].Name + " ---- " + Sum / 1024 + " Mb");
-                    Console.SetCursorPosition(2, Line1_2 + 2);
-                    Console.Write(fileInfo[select].LastWriteTime + " ---- " + fileInfo[select].Extension);
+                    select -= listDir[NumDisp].dirInfo.Length;
+                    long Sum = GetSizeFile(listDir[NumDisp].fileInfo[select]);
+                    string mess = listDir[NumDisp].fileInfo[select].Name + "  " + listDir[NumDisp].fileInfo[select].LastWriteTime
+                        + "  " + Sum / 1024 + " Mb";
+                    Console.SetCursorPosition(2, Line1_2 + 1);
+                    PrintStroks(mess);
                 }
+            }
+        }
+        void PrintStroks(string mess)
+        {
+            if (mess.Length > WindowsWidth - 2)
+            {
+                string mess1 = mess.Substring(0, WindowsWidth / 2);
+                string mess2 = mess.Substring((WindowsWidth / 2) + 1, mess.Length - 1);
+                Console.Write(mess1);
+                Console.SetCursorPosition(2, Line1_2 + 2);
+                Console.Write(mess2);
+            }
+            else
+            {
+                Console.Write(mess);
             }
         }
         /// <summary>
@@ -175,9 +218,10 @@ namespace TotalCommander
         /// <param name="error">сообщение об ошибке</param>
         public void PrintErrorsInfo(string error)
         {
-            Console.SetCursorPosition(3, Line1_2 + 3);
+            Console.CursorVisible = false;
+            Console.SetCursorPosition(2, Line1_2 + 3);
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(error);
+            PrintStroks(error);
             Console.ForegroundColor = ConsoleColor.White;
             try
             {
@@ -245,13 +289,13 @@ namespace TotalCommander
                 Console.Write(" ");
             }
         }
-        public int nowDirConsile()
-        {
-            StringBuilder shortPathName = new StringBuilder((int)API.MAX_PATH);
-            API.GetShortPathName(DirHome, shortPathName, API.MAX_PATH);
-            PrintnowDirConsile(shortPathName.ToString());
-            return shortPathName.Length + 2;
-        }
+        //public int nowDirConsile()
+        //{
+        //    StringBuilder shortPathName = new StringBuilder((int)API.MAX_PATH);
+        //    API.GetShortPathName(DirHome, shortPathName, API.MAX_PATH);
+        //    PrintnowDirConsile(shortPathName.ToString());
+        //    return shortPathName.Length + 2;
+        //}
         void PrintnowDirConsile(string Path)
         {
             DelitConsole();

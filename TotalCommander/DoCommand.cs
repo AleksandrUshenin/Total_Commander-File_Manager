@@ -23,19 +23,14 @@ namespace TotalCommander
                         ChangeDir(com.Split(' ').Last());
                         break;
                     case "CP":
-                        CP(Path.Combine(DirHome, com.Split(' ')[1]), com.Split(' ')[2]);
+                        CP(Path.Combine(listDir[SelWin].DirHome, com.Split(' ')[1]), com.Split(' ')[2]);
                         break;
                     case "RM":
                         if (com.Split(' ')[1] == "-D" || com.Split(' ')[1] == "-d")
                         {
-                            Rm_Withfile(Path.Combine(DirHome, com.Split(' ').Last()));
+                            Rm_D(Path.Combine(listDir[SelWin].DirHome, com.Split(' ').Last()));
                         }
-                        else
-                        {
-                            Rm(com.Split(' ').Last());
-                        }
-                        DeliteWindows();
-                        StartWinMeneger();
+                        Rm(com.Split(' ').Last());
                         break;
                     case "MKDIR":
                         Mkdir(com.Split(' ').Last());
@@ -44,11 +39,9 @@ namespace TotalCommander
                         Touch(com.Split(' ').Last());
                         break;
                     case "SHD":
-                        if (Directory.Exists(DirHome))
-                        {
-                            Properties.Settings.Default.HomeDirrction = DirHome;
-                            Properties.Settings.Default.Save();
-                        }
+                        Properties.Settings.Default.HomeDirrction = listDir[0].DirHome;
+                        Properties.Settings.Default.HomeDirrction2 = listDir[1].DirHome;
+                        Properties.Settings.Default.Save();
                         break;
                 }
             }
@@ -63,9 +56,9 @@ namespace TotalCommander
         /// <param name="com"></param>
         void ChangeDir(string com)
         {
-            DirHome = com;
-            DInfo = new DirectoryInfo(DirHome);
-            DeliteWindows();
+            listDir[SelWin].DirHome = com;
+            listDir[SelWin].DInfo = new DirectoryInfo(listDir[SelWin].DirHome);
+            DeliteWindows(SelWin);
             StartWinMeneger();
         }
         /// <summary>
@@ -74,8 +67,8 @@ namespace TotalCommander
         /// <param name="com"></param>
         void Mkdir(string com)
         {
-            Directory.CreateDirectory(Path.Combine(DirHome, com));
-            DeliteWindows();
+            Directory.CreateDirectory(Path.Combine(listDir[SelWin].DirHome, com));
+            DeliteWindows(SelWin);
             StartWinMeneger();
         }
         /// <summary>
@@ -84,8 +77,8 @@ namespace TotalCommander
         /// <param name="com"></param>
         void Touch(string com)
         {
-            File.Create(Path.Combine(DirHome, com));
-            DeliteWindows();
+            File.Create(Path.Combine(listDir[SelWin].DirHome, com));
+            DeliteWindows(SelWin);
             StartWinMeneger();
         }
         /// <summary>
@@ -94,47 +87,39 @@ namespace TotalCommander
         /// <param name="com"></param>
         void Rm(string com)
         {
-            if (Directory.Exists(Path.Combine(DirHome, com)))
+            if (File.Exists(Path.Combine(listDir[SelWin].DirHome, com)))
             {
-                Directory.Delete(Path.Combine(DirHome, com));
-                if (dirInfo.Length == 1 && fileInfo.Length == 0)
+                File.Delete(Path.Combine(listDir[SelWin].DirHome, com));
+            }
+            else if (Directory.Exists(Path.Combine(listDir[SelWin].DirHome, com)))
+            {
+                Directory.Delete(Path.Combine(listDir[SelWin].DirHome, com));
+                if (listDir[SelWin].dirInfo.Length == 1 && listDir[SelWin].fileInfo.Length == 0)
                 {
-                    DirHome = DInfo.Parent.FullName;
-                    DInfo = new DirectoryInfo(DirHome);
+                    listDir[SelWin].DirHome = listDir[SelWin].DInfo.Parent.FullName;
+                    listDir[SelWin].DInfo = new DirectoryInfo(listDir[SelWin].DirHome);
                 }
             }
-            else if (File.Exists(Path.Combine(DirHome, com)))
-            {
-                File.Delete(Path.Combine(DirHome, com));
-                if (dirInfo.Length == 0 && fileInfo.Length == 1)
-                {
-                    DirHome = DInfo.Parent.FullName;
-                    DInfo = new DirectoryInfo(DirHome);
-                }
-            }
+            DeliteWindows(SelWin);
+            StartWinMeneger();
         }
         /// <summary>
         /// удаление не пустой директории
         /// </summary>
         /// <param name="com"></param>
-        void Rm_Withfile(string com)
+        void Rm_D(string com)
         {
-            string[] dir_D = Directory.GetDirectories(com);
-            string[] file_D = Directory.GetFiles(com);
-            foreach (string fi in file_D)
+            string[] fileinfo = Directory.GetFiles(com);
+            foreach (string Dfile in fileinfo)
             {
-                File.Delete(Path.Combine(com, fi));
+                File.Delete(Dfile);
             }
-            foreach (string di in dir_D)
+            string[] dirinfo = Directory.GetDirectories(com);
+            foreach (string Ddir in dirinfo)
             {
-                Rm_Withfile(Path.Combine(com, di));
+                Rm_D(Ddir);
             }
-            try
-            {
-                Directory.Delete(com);
-            }
-            catch
-            { }
+            Directory.Delete(Path.Combine(listDir[SelWin].DirHome, com));
         }
         /// <summary>
         /// копирование 
@@ -145,6 +130,7 @@ namespace TotalCommander
         {
             if (Directory.Exists(fromDir))
             {
+                ToDir = Path.Combine(ToDir, fromDir.Split('\\').Last());
                 Directory.CreateDirectory(ToDir);
                 foreach (string str in Directory.GetFiles(fromDir))
                 {
@@ -155,9 +141,9 @@ namespace TotalCommander
                     CP(str, Path.Combine(ToDir, Path.GetFileName(str)));
                 }
             }
-            if (File.Exists(fromDir))
+            else if (File.Exists(fromDir))
             {
-                File.Copy(fromDir, ToDir);
+                File.Copy(fromDir, Path.Combine(ToDir, fromDir.Split('\\').Last()));
             }
         }
     }
