@@ -1,4 +1,5 @@
-![Photo](https://user-images.githubusercontent.com/102482033/173406181-650a08dc-1237-4635-b9df-c37189b8eead.png)
+![2022-06-24](https://user-images.githubusercontent.com/102482033/175557718-01463416-edce-4179-b9b2-b4d4a34123cc.png)
+
 
 Файловый менеджер в стиле dos norton commander
 
